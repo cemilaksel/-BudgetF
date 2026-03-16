@@ -24,19 +24,29 @@ export class AiService {
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
-  static async validateApiKey(key: string): Promise<boolean> {
+  static async validateApiKey(key: string): Promise<{ isValid: boolean; error?: string }> {
     try {
       const cleanKey = this.sanitizeApiKey(key);
-      const ai = new GoogleGenAI({ apiKey: cleanKey });
-      // Simple probe to check if the key works
-      await ai.models.generateContent({ 
-        model: "gemini-2.0-flash",
-        contents: "ping" 
-      });
-      return true;
-    } catch (error) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${cleanKey}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (!response.ok) {
+        const message = data.error?.message || JSON.stringify(data);
+        return { 
+          isValid: false, 
+          error: `Hata ${response.status}: ${message}` 
+        };
+      }
+
+      return { isValid: true };
+    } catch (error: any) {
       console.error("API Key validation failed:", error);
-      return false;
+      return { 
+        isValid: false, 
+        error: `Bağlantı hatası: ${error.message || 'Bilinmeyen bir hata oluştu'}` 
+      };
     }
   }
 

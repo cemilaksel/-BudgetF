@@ -17,16 +17,28 @@ export const Settings: React.FC = () => {
     setIsLoading(true);
     setStatus(null);
 
-    const isValid = await AiService.validateApiKey(cleanKey);
-    if (isValid) {
+    const result = await AiService.validateApiKey(cleanKey);
+    if (result.isValid) {
       AiService.setApiKey(cleanKey);
       setStatus({ type: 'success', message: 'API Key başarıyla güncellendi.' });
       setNewKey('');
       setIsEditing(false);
     } else {
-      setStatus({ type: 'error', message: 'API Key geçersiz.' });
+      setStatus({ type: 'error', message: result.error || 'API Key geçersiz.' });
     }
     setIsLoading(false);
+  };
+
+  const handleBypassUpdate = () => {
+    const cleanKey = AiService.sanitizeApiKey(newKey);
+    if (!cleanKey) return;
+    
+    if (window.confirm('Key doğrulanmadan kaydedilecek. Devam etmek istiyor musunuz?')) {
+      AiService.setApiKey(cleanKey);
+      setStatus({ type: 'success', message: 'API Key başarıyla kaydedildi (doğrulanmadı).' });
+      setNewKey('');
+      setIsEditing(false);
+    }
   };
 
   const handlePaste = async () => {
@@ -77,11 +89,23 @@ export const Settings: React.FC = () => {
           </div>
 
           {status && (
-            <div className={`flex items-center gap-2 p-4 rounded-2xl text-sm animate-in slide-in-from-top-2 ${
-              status.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
-            }`}>
-              {status.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-              <p className="font-medium">{status.message}</p>
+            <div className="space-y-2 animate-in slide-in-from-top-2">
+              <div className={`flex items-start gap-2 p-4 rounded-2xl text-sm border select-text ${
+                status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'
+              }`}>
+                {status.type === 'success' ? <CheckCircle2 size={18} className="shrink-0 mt-0.5" /> : <AlertCircle size={18} className="shrink-0 mt-0.5" />}
+                <p className="font-medium break-all">{status.message}</p>
+              </div>
+              
+              {status.type === 'error' && isEditing && (
+                <button
+                  type="button"
+                  onClick={handleBypassUpdate}
+                  className="w-full py-1 text-[10px] font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest"
+                >
+                  Doğrulamadan Kaydet
+                </button>
+              )}
             </div>
           )}
 

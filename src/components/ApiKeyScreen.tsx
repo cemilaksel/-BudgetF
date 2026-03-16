@@ -20,14 +20,24 @@ export const ApiKeyScreen: React.FC<ApiKeyScreenProps> = ({ onKeySaved }) => {
     setIsLoading(true);
     setError(null);
 
-    const isValid = await AiService.validateApiKey(cleanKey);
-    if (isValid) {
+    const result = await AiService.validateApiKey(cleanKey);
+    if (result.isValid) {
       AiService.setApiKey(cleanKey);
       onKeySaved();
     } else {
-      setError('API Key geçersiz. Lütfen doğru girdiğinizden emin olun.');
+      setError(result.error || 'API Key geçersiz.');
     }
     setIsLoading(false);
+  };
+
+  const handleBypassSave = () => {
+    const cleanKey = AiService.sanitizeApiKey(key);
+    if (!cleanKey) return;
+    
+    if (window.confirm('Key doğrulanmadan kaydedilecek. Eğer key yanlışsa AI özellikleri çalışmayacaktır. Devam etmek istiyor musunuz?')) {
+      AiService.setApiKey(cleanKey);
+      onKeySaved();
+    }
   };
 
   const handlePaste = async () => {
@@ -112,9 +122,19 @@ export const ApiKeyScreen: React.FC<ApiKeyScreenProps> = ({ onKeySaved }) => {
           )}
 
           {error && (
-            <div className="flex items-center gap-2 p-4 bg-red-50 text-red-600 rounded-2xl text-sm animate-in slide-in-from-top-2">
-              <AlertCircle size={18} />
-              <p className="font-medium">{error}</p>
+            <div className="space-y-3 animate-in slide-in-from-top-2">
+              <div className="flex items-start gap-2 p-4 bg-red-50 text-red-600 rounded-2xl text-sm border border-red-100 select-text">
+                <AlertCircle size={18} className="shrink-0 mt-0.5" />
+                <p className="font-medium break-all">{error}</p>
+              </div>
+              
+              <button
+                type="button"
+                onClick={handleBypassSave}
+                className="w-full py-2 text-[11px] font-bold text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-widest"
+              >
+                Key'i test etmeden kaydet
+              </button>
             </div>
           )}
 
