@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Key, ExternalLink, AlertCircle, Loader2 } from 'lucide-react';
+import { Key, ExternalLink, AlertCircle, Loader2, Eye, EyeOff, Clipboard, Info } from 'lucide-react';
 import { AiService } from '../services/AiService';
 
 interface ApiKeyScreenProps {
@@ -8,25 +8,43 @@ interface ApiKeyScreenProps {
 
 export const ApiKeyScreen: React.FC<ApiKeyScreenProps> = ({ onKeySaved }) => {
   const [key, setKey] = useState('');
+  const [showKey, setShowKey] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!key.trim()) return;
+    const cleanKey = AiService.sanitizeApiKey(key);
+    if (!cleanKey) return;
 
     setIsLoading(true);
     setError(null);
 
-    const isValid = await AiService.validateApiKey(key.trim());
+    const isValid = await AiService.validateApiKey(cleanKey);
     if (isValid) {
-      AiService.setApiKey(key.trim());
+      AiService.setApiKey(cleanKey);
       onKeySaved();
     } else {
       setError('API Key geçersiz. Lütfen doğru girdiğinizden emin olun.');
     }
     setIsLoading(false);
   };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const cleanText = AiService.sanitizeApiKey(text);
+      setKey(cleanText);
+    } catch (err) {
+      setError('Panodan okuma başarısız oldu. Lütfen manuel yapıştırın.');
+    }
+  };
+
+  const keyLength = key.length;
+  const isCorrectLength = keyLength === 39;
+  const preview = key.length >= 12 
+    ? `${key.slice(0, 8)}...${key.slice(-4)}`
+    : key;
 
   return (
     <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center p-6">
@@ -41,22 +59,57 @@ export const ApiKeyScreen: React.FC<ApiKeyScreenProps> = ({ onKeySaved }) => {
 
         <form onSubmit={handleSave} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Gemini API Key</label>
-            <div className="relative">
+            <div className="flex justify-between items-end px-1">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Gemini API Key</label>
+              {key && (
+                <span className={`text-[10px] font-bold ${isCorrectLength ? 'text-gray-400' : 'text-amber-600'}`}>
+                  {isCorrectLength ? '' : '⚠️ '}{keyLength} karakter
+                </span>
+              )}
+            </div>
+            <div className="relative group">
               <input
-                type="password"
+                type={showKey ? "text" : "password"}
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
                 placeholder="AIzaSy..."
-                className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#1a8a5c] focus:bg-white transition-all outline-none font-mono text-sm"
+                className="w-full p-4 pr-12 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#1a8a5c] focus:bg-white transition-all outline-none font-mono text-sm"
                 required
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck="false"
               />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => setShowKey(!showKey)}
+                  className="p-2 text-gray-400 hover:text-[#1a8a5c] transition-colors"
+                  title={showKey ? "Gizle" : "Göster"}
+                >
+                  {showKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={handlePaste}
+              className="flex items-center gap-1.5 text-[11px] font-bold text-gray-500 hover:text-[#1a8a5c] transition-colors ml-1"
+            >
+              <Clipboard size={14} />
+              📋 Panodan Yapıştır
+            </button>
           </div>
+
+          {key && (
+            <div className="p-3 bg-gray-50 rounded-xl border border-dashed border-gray-200 flex items-center gap-2">
+              <Info size={14} className="text-gray-400" />
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Önizleme</span>
+                <span className="text-xs font-mono font-bold text-gray-600">{preview}</span>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="flex items-center gap-2 p-4 bg-red-50 text-red-600 rounded-2xl text-sm animate-in slide-in-from-top-2">
