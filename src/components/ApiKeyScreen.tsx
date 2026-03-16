@@ -50,6 +50,10 @@ export const ApiKeyScreen: React.FC<ApiKeyScreenProps> = ({ onKeySaved }) => {
                 placeholder="AIzaSy..."
                 className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#1a8a5c] focus:bg-white transition-all outline-none font-mono text-sm"
                 required
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
               />
             </div>
           </div>

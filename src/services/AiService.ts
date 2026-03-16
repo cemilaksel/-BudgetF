@@ -7,8 +7,17 @@ export class AiService {
     return localStorage.getItem(this.STORAGE_KEY);
   }
 
+  static sanitizeApiKey(key: string): string {
+    return key
+      .trim()
+      .replace(/[\n\r\t]/g, '')
+      .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
+      .replace(/['"]/g, '');
+  }
+
   static setApiKey(key: string): void {
-    localStorage.setItem(this.STORAGE_KEY, key);
+    const cleanKey = this.sanitizeApiKey(key);
+    localStorage.setItem(this.STORAGE_KEY, cleanKey);
   }
 
   static removeApiKey(): void {
@@ -17,7 +26,8 @@ export class AiService {
 
   static async validateApiKey(key: string): Promise<boolean> {
     try {
-      const ai = new GoogleGenAI({ apiKey: key });
+      const cleanKey = this.sanitizeApiKey(key);
+      const ai = new GoogleGenAI({ apiKey: cleanKey });
       // Simple probe to check if the key works
       await ai.models.generateContent({ 
         model: "gemini-2.0-flash",

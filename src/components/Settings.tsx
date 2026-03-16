@@ -93,6 +93,10 @@ export const Settings: React.FC = () => {
                 placeholder="Yeni API Key girin..."
                 className="w-full p-3 bg-gray-50 rounded-xl border-2 border-transparent focus:border-[#1a8a5c] outline-none text-sm font-mono"
                 required
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
               />
               <div className="grid grid-cols-2 gap-3">
                 <button
