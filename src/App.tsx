@@ -1,15 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { Dashboard } from './components/Dashboard';
 import { AddTransaction } from './components/AddTransaction';
 import { History } from './components/History';
 import { Statistics } from './components/Statistics';
 import { Goals } from './components/Goals';
+import { Settings } from './components/Settings';
+import { ApiKeyScreen } from './components/ApiKeyScreen';
 import { useBudget } from './hooks/useBudget';
 import { TabType } from './types';
+import { AiService } from './services/AiService';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const key = AiService.getApiKey();
+    setHasApiKey(!!key);
+  }, []);
+
   const { 
     transactions, 
     goals, 
@@ -62,6 +72,8 @@ export default function App() {
             onDelete={deleteGoal} 
           />
         );
+      case 'settings':
+        return <Settings />;
       default:
         return (
           <Dashboard 
@@ -75,6 +87,12 @@ export default function App() {
         );
     }
   };
+
+  if (hasApiKey === null) return null;
+
+  if (!hasApiKey) {
+    return <ApiKeyScreen onKeySaved={() => setHasApiKey(true)} />;
+  }
 
   return (
     <Layout 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, Plus, History as HistoryIcon, BarChart3, Target } from 'lucide-react';
+import { LayoutGrid, Plus, History as HistoryIcon, BarChart3, Target, Settings as SettingsIcon } from 'lucide-react';
 import { TabType } from '../types';
 import { cn } from '../types';
 
@@ -17,6 +17,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
     { id: 'history', icon: HistoryIcon, label: 'Geçmiş' },
     { id: 'stats', icon: BarChart3, label: 'İstatistik' },
     { id: 'goals', icon: Target, label: 'Hedefler' },
+    { id: 'settings', icon: SettingsIcon, label: 'Ayarlar' },
   ];
 
   return (

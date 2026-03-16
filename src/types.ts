@@ -32,4 +32,4 @@ export interface BudgetLimit {
   limit: number;
 }
 
-export type TabType = 'dashboard' | 'add' | 'history' | 'stats' | 'goals';
+export type TabType = 'dashboard' | 'add' | 'history' | 'stats' | 'goals' | 'settings';
